@@ -17,13 +17,22 @@ export default function Sidebar({ activePage }) {
 
   // Dynamic Navigation Items by Role
   const getNavItems = () => {
+    if (currentRole === 'superadmin') {
+      return [
+        { id: 'superadmin-console', label: 'Platform Operations', icon: '🌐', path: '/superadmin' },
+        { id: 'tenants', label: 'Tenant Clusters', icon: '🏢', path: '/superadmin' },
+        { id: 'service-bus', label: 'Azure Service Bus', icon: '⚡', path: '/superadmin' },
+        { id: 'readiness-gates', label: 'Readiness Gates 01–03', icon: '🛡️', path: '/superadmin' },
+        { id: 'audit-ledger', label: 'Cryptographic Ledger', icon: '📜', path: '/superadmin' },
+      ];
+    }
     if (currentRole === 'teacher') {
       return [
         { id: 'teacher-studio', label: 'Assessment Studio', icon: '🧑‍🏫', path: '/teacher/studio' },
         { id: 'live-monitor', label: 'Live Candidate Grid', icon: '📹', path: '/teacher/studio', badge: '6' },
         { id: 'teacher-review', label: 'Evidence Case Review', icon: '⚠️', path: '/teacher/proctoring-review', badge: '2' },
         { id: 'catalog', label: 'Resource Catalog', icon: '📚', path: '/catalog' },
-        { id: 'immersion', label: 'Live Sandbox Inspect', icon: '💻', path: '/assess' },
+        { id: 'immersion', label: 'Sandbox Inspect', icon: '💻', path: '/assess' },
       ];
     }
     if (currentRole === 'admin') {
@@ -38,10 +47,11 @@ export default function Sidebar({ activePage }) {
     // Default: Student
     return [
       { id: 'dashboard', label: 'Student Overview', icon: '⊞', path: '/dashboard' },
-      { id: 'skill-studio', label: 'AI Skill-Gap & Copilot', icon: '🤖', path: '/career-copilot', badge: 'New' },
+      { id: 'skill-studio', label: 'AI Career Copilot', icon: '🤖', path: '/career-copilot', badge: 'New' },
+      { id: 'drills', label: 'Gamified Sprints', icon: '⚡', path: '/practice/round' },
       { id: 'catalog', label: 'Resource Catalog', icon: '📚', path: '/catalog' },
-      { id: 'drills', label: 'Gamified Rounds', icon: '⚡', path: '/career-copilot' },
-      { id: 'assess', label: 'Immersion Sandbox', icon: '⏱', path: '/assess' },
+      { id: 'assess', label: 'Assessment Sandbox', icon: '⏱', path: '/assess' },
+      { id: 'result', label: 'Official Result Transcripts', icon: '📜', path: '/assessment/result' },
     ];
   };
 
@@ -76,12 +86,14 @@ export default function Sidebar({ activePage }) {
               if (role === 'student') navigate('/dashboard');
               if (role === 'teacher') navigate('/teacher/studio');
               if (role === 'admin') navigate('/admin/console');
+              if (role === 'superadmin') navigate('/superadmin');
             }}
             className="bg-[#1C1F30] border border-[#252840] text-[#F0F2FF] rounded px-2 py-1 text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-[#4F6BED] cursor-pointer"
           >
             <option value="student">🎓 Student</option>
             <option value="teacher">🧑‍🏫 Teacher</option>
             <option value="admin">🏛️ Institution Admin</option>
+            <option value="superadmin">🌐 Super-Admin</option>
           </select>
         </div>
       </div>

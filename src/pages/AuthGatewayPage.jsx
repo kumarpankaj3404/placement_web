@@ -61,7 +61,11 @@ export default function AuthGatewayPage() {
     // Simulate domain detection & SAML/Entra ID routing
     setTimeout(() => {
       setIsLoadingSSO(false);
-      if (trimmed.includes('teacher') || trimmed.includes('faculty')) {
+      if (trimmed.includes('secops') || trimmed.includes('superadmin')) {
+        dispatch(switchRole('superadmin'));
+        setSuccessBanner('Azure Entra PIM / FIDO2 validated for Platform Ops. Routing to Super-Admin Console...');
+        setTimeout(() => navigate('/superadmin'), 900);
+      } else if (trimmed.includes('teacher') || trimmed.includes('faculty')) {
         dispatch(switchRole('teacher'));
         setSuccessBanner('SAML 2.0 / Entra ID verified for Faculty. Routing to Teacher Studio...');
         setTimeout(() => navigate('/teacher/studio'), 900);
@@ -169,7 +173,7 @@ export default function AuthGatewayPage() {
                 </span>
                 <span className="text-[10px] text-emerald-400 font-mono">OTP: 123456</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickRoleLogin('student', '/dashboard')}
@@ -178,7 +182,7 @@ export default function AuthGatewayPage() {
                   <p className="text-[11px] font-semibold text-[#F0F2FF] group-hover:text-[#4F6BED] flex items-center gap-1">
                     🎓 Student
                   </p>
-                  <p className="text-[9px] text-[#8B91B0]">Aanya Rao (Batch A)</p>
+                  <p className="text-[9px] text-[#8B91B0]">Aanya Rao</p>
                 </button>
                 <button
                   type="button"
@@ -188,7 +192,7 @@ export default function AuthGatewayPage() {
                   <p className="text-[11px] font-semibold text-[#F0F2FF] group-hover:text-[#4F6BED] flex items-center gap-1">
                     🧑‍🏫 Teacher
                   </p>
-                  <p className="text-[9px] text-[#8B91B0]">Prof. Rohan Shah</p>
+                  <p className="text-[9px] text-[#8B91B0]">Prof. Rohan</p>
                 </button>
                 <button
                   type="button"
@@ -198,7 +202,17 @@ export default function AuthGatewayPage() {
                   <p className="text-[11px] font-semibold text-[#F0F2FF] group-hover:text-[#4F6BED] flex items-center gap-1">
                     🏛️ Institution
                   </p>
-                  <p className="text-[9px] text-[#8B91B0]">Dr. Vikram Nair</p>
+                  <p className="text-[9px] text-[#8B91B0]">Dr. Vikram</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickRoleLogin('superadmin', '/superadmin')}
+                  className="px-2 py-2 rounded-lg bg-[#1C1F30] hover:bg-[#4F6BED]/20 border border-[#252840] hover:border-[#4F6BED] text-left transition-all group"
+                >
+                  <p className="text-[11px] font-semibold text-[#F0F2FF] group-hover:text-[#4F6BED] flex items-center gap-1">
+                    🌐 Platform
+                  </p>
+                  <p className="text-[9px] text-[#8B91B0]">SecOps Root</p>
                 </button>
               </div>
             </div>

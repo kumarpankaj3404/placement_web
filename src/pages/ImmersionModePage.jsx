@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { setCode, setLanguage } from '../store/slices/assessmentSlice';
 
 /* ─── Server-Authoritative Timer ────────────────────────────
@@ -222,7 +223,7 @@ const MOCK_TEST_RESULTS = [
   { id: 3, status: 'PASSED', time: '2ms', memory: '17.3MB' },
 ];
 
-function CodeEditorPane({ code, setCode, language, setLanguage, deadlineAt, serverTimeOffset }) {
+function CodeEditorPane({ code, setCode, language, setLanguage, deadlineAt, serverTimeOffset, onSubmitSolution, onExitSandbox }) {
   const [consoleTab, setConsoleTabLocal] = useState('testResults');
   const [isRunning, setIsRunning] = useState(false);
 
@@ -238,6 +239,14 @@ function CodeEditorPane({ code, setCode, language, setLanguage, deadlineAt, serv
       {/* Editor Top Bar */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-[#1E2230] bg-[#0E1017] flex-shrink-0 gap-4">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onExitSandbox}
+            title="Exit Immersion Mode (Back to Student Hub)"
+            className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-[#141622] border border-[#252840]"
+          >
+            ← Exit
+          </button>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
@@ -329,7 +338,11 @@ function CodeEditorPane({ code, setCode, language, setLanguage, deadlineAt, serv
               {isRunning ? <span className="w-3 h-3 border border-[#C0C5DD]/30 border-t-[#C0C5DD] rounded-full animate-spin" /> : '▶'}
               {isRunning ? 'Running…' : 'Run Code'}
             </button>
-            <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#4F6BED] hover:bg-[#3D5BE0] text-white text-xs font-semibold transition-all">
+            <button
+              type="button"
+              onClick={onSubmitSolution}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#4F6BED] hover:bg-[#3D5BE0] text-white text-xs font-semibold transition-all shadow-md shadow-[#4F6BED]/20"
+            >
               ↑ Submit Solution
             </button>
           </div>
@@ -438,19 +451,45 @@ function ProctoringPane({ connectionStatus, latencyMs, peerNode }) {
 
 export default function ImmersionModePage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { deadlineAt, serverTimeOffset } = useSelector((s) => s.assessment);
   const { connectionStatus, latencyMs, peerNode } = useSelector((s) => s.proctoring);
   const [code, setCodeLocal] = useState(DEFAULT_CODE);
   const [language, setLanguageLocal] = useState('python');
   const [problemTab, setProblemTabLocal] = useState('description');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStep, setSubmitStep] = useState(0);
 
   // Mock: use a deadline 47 mins from now for demo purposes
   const mockDeadlineAt = deadlineAt || new Date(Date.now() + 47 * 60 * 1000).toISOString();
   const mockOffset = serverTimeOffset || 0;
   const mockStatus = connectionStatus || 'healthy';
 
+  function handleSubmitSolution() {
+    setIsSubmitting(true);
+    setSubmitStep(1); // Writing versioned code to MongoDB + Blob
+    setTimeout(() => {
+      setSubmitStep(2); // Publishing execution job to Azure Service Bus
+      setTimeout(() => {
+        setSubmitStep(3); // Running private tests in gVisor ephemeral sandbox
+        setTimeout(() => {
+          setSubmitStep(4); // Core PostgreSQL commit authoritative result
+          setTimeout(() => {
+            navigate('/assessment/result/ATT-8942');
+          }, 600);
+        }, 700);
+      }, 700);
+    }, 700);
+  }
+
+  function handleExitSandbox() {
+    if (confirm('Exit Immersion Mode? Your unsaved draft changes are synced with the local sandbox.')) {
+      navigate('/dashboard');
+    }
+  }
+
   return (
-    <div className="h-screen w-screen bg-[#090A0F] flex font-['Inter',sans-serif] overflow-hidden select-none">
+    <div className="h-screen w-screen bg-[#090A0F] flex font-['Inter',sans-serif] overflow-hidden select-none relative">
       <ProblemPane tab={problemTab} onTabChange={setProblemTabLocal} />
       <CodeEditorPane
         code={code}
@@ -459,12 +498,58 @@ export default function ImmersionModePage() {
         setLanguage={setLanguageLocal}
         deadlineAt={mockDeadlineAt}
         serverTimeOffset={mockOffset}
+        onSubmitSolution={handleSubmitSolution}
+        onExitSandbox={handleExitSandbox}
       />
       <ProctoringPane
         connectionStatus={mockStatus}
         latencyMs={latencyMs || 18}
         peerNode={peerNode || 'US-WEST-2B'}
       />
+
+      {/* Submission Progression Modal (Flow B Architectural Contract) */}
+      {isSubmitting && (
+        <div className="absolute inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141622] border border-[#1E2238] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="w-5 h-5 border-2 border-[#4F6BED] border-t-transparent rounded-full animate-spin" />
+              <div>
+                <h3 className="text-sm font-bold text-white font-['Geist',sans-serif]">
+                  Enclave Execution &amp; Scoring In Progress
+                </h3>
+                <p className="text-[11px] text-[#8B91B0]">Architecture Flow B · Attempt #ATT-8942</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs font-mono">
+              <div className={`p-2 rounded border flex items-center justify-between ${
+                submitStep >= 1 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#0D0F1A] border-[#252840] text-[#8B91B0]'
+              }`}>
+                <span>1. Persisting versioned code (MongoDB + Blob)</span>
+                <span>{submitStep >= 1 ? '✓ Done' : 'Pending'}</span>
+              </div>
+              <div className={`p-2 rounded border flex items-center justify-between ${
+                submitStep >= 2 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#0D0F1A] border-[#252840] text-[#8B91B0]'
+              }`}>
+                <span>2. Azure Service Bus execution job enqueued</span>
+                <span>{submitStep >= 2 ? '✓ Enqueued' : 'Pending'}</span>
+              </div>
+              <div className={`p-2 rounded border flex items-center justify-between ${
+                submitStep >= 3 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#0D0F1A] border-[#252840] text-[#8B91B0]'
+              }`}>
+                <span>3. Isolated gVisor container running test suite</span>
+                <span>{submitStep >= 3 ? '✓ 3/3 Passed' : 'Running...'}</span>
+              </div>
+              <div className={`p-2 rounded border flex items-center justify-between ${
+                submitStep >= 4 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#0D0F1A] border-[#252840] text-[#8B91B0]'
+              }`}>
+                <span>4. Core PostgreSQL transactional outbox committed</span>
+                <span>{submitStep >= 4 ? '✓ Committed' : 'Pending'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { toggleSidebar, setLeaderboardScope, setActiveAssessmentTab } from '../store/slices/uiSlice';
 import Sidebar from '../components/layout/Sidebar';
 import SkeletonCard from '../components/ui/SkeletonCard';
@@ -78,7 +79,7 @@ function MetricCard({ icon, label, value, sub, accent }) {
   );
 }
 
-function AssignmentCard({ assignment, isLoading }) {
+function AssignmentCard({ assignment, isLoading, onEnter }) {
   if (isLoading) return <SkeletonCard />;
   return (
     <div className="bg-[#141622] border border-[#1E2238] rounded-xl p-5 flex flex-col gap-3 hover:border-[#4F6BED]/50 transition-all duration-200 group">
@@ -100,16 +101,22 @@ function AssignmentCard({ assignment, isLoading }) {
           <span className="text-emerald-400 text-[10px]">● {assignment.proctor}</span>
         )}
       </div>
-      <button className="mt-auto w-full py-2 bg-[#4F6BED] hover:bg-[#3D5BE0] rounded-lg text-white text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+      <button
+        onClick={onEnter}
+        className="mt-auto w-full py-2 bg-[#4F6BED] hover:bg-[#3D5BE0] rounded-lg text-white text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-[#4F6BED]/20"
+      >
         🔒 Enter Assessment
       </button>
     </div>
   );
 }
 
-function DrillCard({ drill }) {
+function DrillCard({ drill, onSelect }) {
   return (
-    <div className="min-w-[180px] bg-[#141622] border border-[#1E2238] rounded-xl p-4 flex flex-col gap-2 hover:border-[#4F6BED]/50 transition-all duration-200 cursor-pointer group">
+    <div
+      onClick={onSelect}
+      className="min-w-[180px] bg-[#141622] border border-[#1E2238] rounded-xl p-4 flex flex-col gap-2 hover:border-[#4F6BED]/50 transition-all duration-200 cursor-pointer group"
+    >
       <span className="text-[10px] font-mono uppercase tracking-widest text-[#4F6BED] bg-[#4F6BED]/10 px-2 py-0.5 rounded self-start">
         {drill.category}
       </span>
@@ -149,11 +156,14 @@ function LeaderboardRow({ entry }) {
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { leaderboardScope, activeAssessmentTab } = useSelector((s) => s.ui);
+  const { user } = useSelector((s) => s.auth);
   const isLoading = false; // Replace with RTK Query isLoading
 
   const tabs = ['all', 'proctored', 'mock'];
   const maxHours = Math.max(...TELEMETRY_DAYS.map((d) => d.hours));
+  const candidateName = user?.name || 'Aanya Rao';
 
   return (
     <div className="min-h-screen bg-[#0D0F1A] flex font-['Inter',sans-serif]">
@@ -164,8 +174,12 @@ export default function DashboardPage() {
         <div className="border-b border-[#1E2238] px-8 py-5">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#F0F2FF] font-['Geist',sans-serif]">Good Morning, Arjun 👋</h1>
-              <p className="text-sm text-[#8B91B0] mt-0.5">Thursday, 29 October 2026 · System Ready · 256-bit TLS Active</p>
+              <h1 className="text-2xl font-bold text-[#F0F2FF] font-['Geist',sans-serif]">
+                Good Morning, {candidateName.split(' ')[0]} 👋
+              </h1>
+              <p className="text-sm text-[#8B91B0] mt-0.5">
+                {user?.institution || 'Northbridge Institute'} · {user?.batch || 'Batch A'} · 256-bit TLS Enclave Active
+              </p>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
@@ -173,8 +187,52 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Access Map Placement Prep Plan Banner */}
+          <div className="mt-5 p-5 bg-gradient-to-r from-[#141622] via-[#1A1C30] to-[#141622] border border-[#252840] rounded-xl flex items-center justify-between shadow-lg">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase tracking-widest text-[#4F6BED] font-bold">
+                  Placement Preparation Plan
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                  Active Sprint
+                </span>
+              </div>
+              <h2 className="text-lg font-bold text-white font-['Geist',sans-serif]">
+                Keep going, {candidateName.split(' ')[0]} ✨
+              </h2>
+              <p className="text-xs text-[#8B91B0]">
+                Assigned: <span className="text-white font-semibold">DSA Foundations (45-minute timed benchmark)</span>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-3">
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#252840" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4F6BED" strokeWidth="3"
+                      strokeDasharray={`${68} ${100}`} strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute text-xs font-bold font-mono text-white">68%</span>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">Overall Readiness</p>
+                  <p className="text-[10px] text-emerald-400">Target: 80% Benchmark</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/assess')}
+                className="px-4 py-2 bg-[#4F6BED] hover:bg-[#3D5BE0] text-white text-xs font-semibold rounded-lg shadow-md shadow-[#4F6BED]/20 transition-all flex items-center gap-1.5"
+              >
+                <span>Take Mock Test →</span>
+              </button>
+            </div>
+          </div>
+
           {/* Metrics Banner */}
-          <div className="grid grid-cols-3 gap-4 mt-5">
+          <div className="grid grid-cols-3 gap-4 mt-4">
             <MetricCard icon="🔥" label="7-Day Streak" value={`${MOCK_METRICS.streak} days`} sub="Personal best: 14 days" accent="bg-amber-500/10" />
             <MetricCard icon="📈" label="Readiness Score" value={`${MOCK_METRICS.readiness}%`} sub="+3.2% vs last week" accent="bg-[#4F6BED]/10" />
             <MetricCard icon="⏱" label="Focus Hours" value={`${MOCK_METRICS.focusHours}h`} sub={`Target: ${MOCK_METRICS.focusTarget}h`} accent="bg-emerald-500/10" />
@@ -204,18 +262,37 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {MOCK_ASSIGNMENTS.map((a) => (
-                  <AssignmentCard key={a.id} assignment={a} isLoading={isLoading} />
+                  <AssignmentCard
+                    key={a.id}
+                    assignment={a}
+                    isLoading={isLoading}
+                    onEnter={() => navigate('/assess')}
+                  />
                 ))}
               </div>
             </section>
 
             {/* Focus Drills */}
             <section>
-              <h2 className="text-base font-semibold text-[#F0F2FF] font-['Geist',sans-serif] mb-4">
-                Adaptive Focus Drills
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-[#F0F2FF] font-['Geist',sans-serif]">
+                  Adaptive Focus Drills &amp; Sprints
+                </h2>
+                <button
+                  onClick={() => navigate('/practice/round?type=aptitude')}
+                  className="text-xs text-[#4F6BED] hover:underline font-semibold"
+                >
+                  View All Gamified Sprints →
+                </button>
+              </div>
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {MOCK_DRILLS.map((d) => <DrillCard key={d.id} drill={d} />)}
+                {MOCK_DRILLS.map((d) => (
+                  <DrillCard
+                    key={d.id}
+                    drill={d}
+                    onSelect={() => navigate(`/practice/round?type=debug`)}
+                  />
+                ))}
               </div>
             </section>
           </div>

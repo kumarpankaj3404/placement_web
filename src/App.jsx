@@ -13,6 +13,9 @@ import TeacherStudioPage from './pages/TeacherStudioPage';
 import ProctoringReviewPage from './pages/ProctoringReviewPage';
 import StudentSkillStudioPage from './pages/StudentSkillStudioPage';
 import InstitutionAdminPage from './pages/InstitutionAdminPage';
+import SuperAdminPlatformConsolePage from './pages/SuperAdminPlatformConsolePage';
+import AssessmentResultPage from './pages/AssessmentResultPage';
+import GamifiedRoundRunnerPage from './pages/GamifiedRoundRunnerPage';
 
 export default function App() {
   return (
@@ -27,7 +30,11 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/career-copilot" element={<StudentSkillStudioPage />} />
           <Route path="/drills" element={<StudentSkillStudioPage />} />
+          <Route path="/practice/round" element={<GamifiedRoundRunnerPage />} />
+          <Route path="/practice/:type" element={<GamifiedRoundRunnerPage />} />
           <Route path="/catalog" element={<ContentRepositoryPage />} />
+          <Route path="/assessment/result" element={<AssessmentResultPage />} />
+          <Route path="/assessment/result/:attemptId" element={<AssessmentResultPage />} />
 
           {/* Immersion Mode (Fullscreen Zero-Distraction Sandbox & Proctored Telemetry) */}
           <Route path="/assess/:sessionId" element={<ImmersionModePage />} />
@@ -38,9 +45,13 @@ export default function App() {
           <Route path="/teacher/proctoring-review" element={<ProctoringReviewPage />} />
           <Route path="/teacher/analytics" element={<TeacherStudioPage />} />
 
-          {/* Institution Admin & Super-Admin Console (Governance, Batches, Azure Health) */}
+          {/* Institution Admin Console (Governance, Batches, Azure Health) */}
           <Route path="/admin/console" element={<InstitutionAdminPage />} />
           <Route path="/admin/audit-log" element={<InstitutionAdminPage />} />
+
+          {/* Super-Admin Platform Console (Multi-Tenant Enclave Operations & Readiness Gates) */}
+          <Route path="/superadmin" element={<SuperAdminPlatformConsolePage />} />
+          <Route path="/platform-console" element={<SuperAdminPlatformConsolePage />} />
 
           {/* Aliases & Fallbacks */}
           <Route path="/assessments" element={<DashboardPage />} />
